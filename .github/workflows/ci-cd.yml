@@ -122,7 +122,7 @@ jobs:
       with:
         sarif_file: 'trivy-results.sarif'
 
-  # Deploy to Railway (Backend)
+  # Deploy Backend to Railway
   deploy-backend:
     name: Deploy Backend to Railway
     runs-on: ubuntu-latest
@@ -136,15 +136,15 @@ jobs:
     - name: Install Railway CLI
       run: npm install -g @railway/cli
       
-    - name: Deploy to Railway
-      run: railway up --service ${{ secrets.RAILWAY_SERVICE_ID }}
+    - name: Deploy Backend to Railway
+      run: railway up --service ${{ secrets.RAILWAY_BACKEND_SERVICE_ID }}
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       working-directory: ./api
 
-  # Deploy to Vercel (Frontend)
+  # Deploy Frontend to Railway
   deploy-frontend:
-    name: Deploy Frontend to Vercel
+    name: Deploy Frontend to Railway
     runs-on: ubuntu-latest
     needs: [frontend-test, backend-test, security-scan, deploy-backend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -153,13 +153,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Deploy to Vercel
-      uses: amondnet/vercel-action@v25
-      with:
-        vercel-token: ${{ secrets.VERCEL_TOKEN }}
-        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-        vercel-args: '--prod'
+    - name: Install Railway CLI
+      run: npm install -g @railway/cli
+      
+    - name: Deploy Frontend to Railway
+      run: railway up --service ${{ secrets.RAILWAY_FRONTEND_SERVICE_ID }}
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        API_URL: ${{ secrets.RAILWAY_BACKEND_URL }}
+        NEXT_PUBLIC_API_URL: ${{ secrets.RAILWAY_BACKEND_URL }}
 
   # Integration Tests (Post-Deployment)
   integration-test:
@@ -178,7 +180,7 @@ jobs:
         
     - name: Test Frontend Health
       run: |
-        curl -f ${{ secrets.VERCEL_FRONTEND_URL }} || exit 1
+        curl -f ${{ secrets.RAILWAY_FRONTEND_URL }} || exit 1
         
     - name: Test API Integration
       run: |
@@ -204,7 +206,7 @@ jobs:
       if: needs.integration-test.result == 'success'
       run: |
         echo "✅ Deployment successful!"
-        echo "Frontend: ${{ secrets.VERCEL_FRONTEND_URL }}"
+        echo "Frontend: ${{ secrets.RAILWAY_FRONTEND_URL }}"
         echo "Backend: ${{ secrets.RAILWAY_BACKEND_URL }}"
         
     - name: Notify Failure

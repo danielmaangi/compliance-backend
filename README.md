@@ -153,6 +153,8 @@ Analyzes uploaded files for compliance keywords
 
 ## 🚀 Deployment
 
+Both frontend and backend are deployed on Railway for simplified management.
+
 ### Backend (Railway) - Deploy First
 1. **Create Railway Account**: Sign up at [railway.app](https://railway.app)
 2. **Deploy Backend**:
@@ -163,18 +165,18 @@ Analyzes uploaded files for compliance keywords
 3. **Configure Environment**:
    - Railway will automatically set the `PORT` variable
    - No additional environment variables needed for basic setup
-4. **Get Backend URL**: After deployment, copy your Railway app URL (e.g., `https://your-app.railway.app`)
+4. **Get Backend URL**: After deployment, copy your Railway app URL (e.g., `https://your-backend-app.railway.app`)
 
-### Frontend (Vercel) - Deploy Second
-1. **Connect Repository**: Connect your GitHub repository to Vercel
-2. **Configure Build Settings**:
-   - Build Command: `npm run build`
-   - Output Directory: `.next`
-   - Root Directory: `/` (leave empty for root)
-3. **Set Environment Variables**:
-   - Add `API_URL` = `https://your-railway-backend-url.railway.app`
-   - Add `NEXT_PUBLIC_API_URL` = `https://your-railway-backend-url.railway.app`
-4. **Deploy**: Click deploy
+### Frontend (Railway) - Deploy Second
+1. **Add Frontend Service**:
+   - In your Railway project, click "New Service"
+   - Select "Deploy from GitHub repo"
+   - Choose the same repository
+   - Leave root directory empty (uses project root)
+2. **Configure Environment Variables**:
+   - Add `API_URL` = `https://your-backend-app.railway.app`
+   - Add `NEXT_PUBLIC_API_URL` = `https://your-backend-app.railway.app`
+3. **Deploy**: Railway will automatically build and deploy
 
 ### Environment Variables Setup
 Copy `.env.example` to `.env.local` and update with your Railway backend URL:
@@ -182,6 +184,8 @@ Copy `.env.example` to `.env.local` and update with your Railway backend URL:
 cp .env.example .env.local
 # Edit .env.local with your Railway backend URL
 ```
+
+See [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md) for detailed deployment instructions.
 
 ## 🤝 Contributing
 
@@ -204,7 +208,7 @@ For issues and support, please create an issue in the GitHub repository.
 This project includes comprehensive GitHub Actions workflows for:
 
 - **Continuous Integration**: Automated testing, linting, and security scanning
-- **Continuous Deployment**: Automatic deployment to Railway (backend) and Vercel (frontend)
+- **Continuous Deployment**: Automatic deployment to Railway (both backend and frontend)
 - **Pull Request Validation**: Code quality checks and automated PR comments
 - **Dependency Management**: Weekly automated dependency updates
 - **Security Monitoring**: Vulnerability scanning and automated issue creation

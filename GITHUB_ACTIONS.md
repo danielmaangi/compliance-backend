@@ -11,8 +11,8 @@ This document explains the GitHub Actions workflows configured for the EO Compli
 - **Frontend Tests & Build**: ESLint, TypeScript checking, Next.js build
 - **Backend Tests & Validation**: Python linting, API startup tests, endpoint validation
 - **Security Scanning**: Trivy vulnerability scanner
-- **Deploy Backend**: Automatic Railway deployment on main branch
-- **Deploy Frontend**: Automatic Vercel deployment on main branch
+- **Deploy Backend**: Automatic Railway backend deployment on main branch
+- **Deploy Frontend**: Automatic Railway frontend deployment on main branch
 - **Integration Tests**: Post-deployment health checks
 - **Notifications**: Deployment status updates
 
@@ -43,16 +43,12 @@ Configure these in GitHub Settings → Secrets and variables → Actions:
 ```bash
 # Railway Deployment
 RAILWAY_TOKEN=your_railway_token
-RAILWAY_SERVICE_ID=your_service_id
-
-# Vercel Deployment
-VERCEL_TOKEN=your_vercel_token
-VERCEL_ORG_ID=your_org_id
-VERCEL_PROJECT_ID=your_project_id
+RAILWAY_BACKEND_SERVICE_ID=your_backend_service_id
+RAILWAY_FRONTEND_SERVICE_ID=your_frontend_service_id
 
 # URLs for Integration Testing
-RAILWAY_BACKEND_URL=https://your-app.railway.app
-VERCEL_FRONTEND_URL=https://your-app.vercel.app
+RAILWAY_BACKEND_URL=https://your-backend-app.railway.app
+RAILWAY_FRONTEND_URL=https://your-frontend-app.railway.app
 ```
 
 ### How to Get Secrets
@@ -68,25 +64,12 @@ VERCEL_FRONTEND_URL=https://your-app.vercel.app
    railway whoami --token
    ```
 
-2. **RAILWAY_SERVICE_ID**:
+2. **RAILWAY_SERVICE_IDs**:
    - Go to Railway dashboard
    - Select your project
-   - Copy service ID from URL or settings
-
-#### Vercel Secrets
-1. **VERCEL_TOKEN**:
-   - Go to Vercel Dashboard → Settings → Tokens
-   - Create new token with appropriate scope
-
-2. **VERCEL_ORG_ID & PROJECT_ID**:
-   ```bash
-   # Install Vercel CLI
-   npm install -g vercel
-   
-   # Login and get IDs
-   vercel login
-   vercel ls
-   ```
+   - Copy service IDs from each service settings
+   - Backend service ID for `RAILWAY_BACKEND_SERVICE_ID`
+   - Frontend service ID for `RAILWAY_FRONTEND_SERVICE_ID`
 
 ## 📋 Workflow Features
 
@@ -98,7 +81,7 @@ VERCEL_FRONTEND_URL=https://your-app.vercel.app
 
 ### Automated Deployment
 - **Railway Backend**: Automatic deployment on main branch push
-- **Vercel Frontend**: Automatic deployment after backend success
+- **Railway Frontend**: Automatic deployment after backend success
 - **Environment Variables**: Automatic configuration
 - **Rollback**: Manual rollback capability
 
@@ -152,8 +135,8 @@ on:
 3. **Integration Tests**: Add to `integration-test` job
 
 ### Modifying Deployment
-1. **Railway Config**: Update `deploy-backend` job
-2. **Vercel Config**: Update `deploy-frontend` job
+1. **Railway Backend Config**: Update `deploy-backend` job
+2. **Railway Frontend Config**: Update `deploy-frontend` job
 3. **Environment Variables**: Update secrets configuration
 
 ### Security Scanning

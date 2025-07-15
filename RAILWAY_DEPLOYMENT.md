@@ -1,6 +1,6 @@
 # Railway Deployment Guide
 
-This guide will help you deploy the EO Compliance Analysis Tool to Railway (backend) and Vercel (frontend).
+This guide will help you deploy both the backend and frontend of the EO Compliance Analysis Tool to Railway.
 
 ## 🚂 Step 1: Deploy Backend to Railway
 
@@ -33,45 +33,45 @@ This guide will help you deploy the EO Compliance Analysis Tool to Railway (back
 
 ### 1.3 Get Backend URL
 - After successful deployment, copy your Railway app URL
-- Format: `https://your-app-name.railway.app`
-- Test the API: `https://your-app-name.railway.app/` should return `{"message":"EO Compliance Analysis API"}`
+- Format: `https://your-backend-app.railway.app`
+- Test the API: `https://your-backend-app.railway.app/` should return `{"message":"EO Compliance Analysis API"}`
 
-## 🌐 Step 2: Deploy Frontend to Vercel
+## 🌐 Step 2: Deploy Frontend to Railway
 
-### 2.1 Prepare Vercel Account
-- Sign up at [vercel.com](https://vercel.com)
-- Connect your GitHub account
+### 2.1 Create Frontend Service
+1. **Add New Service**:
+   - In your Railway project, click "New Service"
+   - Select "Deploy from GitHub repo"
+   - Choose the same `danielmaangi/eo-compliance-web` repository
 
-### 2.2 Deploy Frontend
-1. **Import Project**:
-   - Click "New Project"
-   - Import `danielmaangi/eo-compliance-web`
-
-2. **Configure Build Settings**:
-   - **Framework Preset**: Next.js
-   - **Root Directory**: `/` (leave empty)
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `.next`
+2. **Configure Root Directory**:
+   - **Root Directory**: `/` (leave empty for root)
+   - Railway will detect `package.json` and use Node.js buildpack
 
 3. **Set Environment Variables**:
    ```
-   API_URL = https://your-railway-app.railway.app
-   NEXT_PUBLIC_API_URL = https://your-railway-app.railway.app
+   API_URL = https://your-backend-app.railway.app
+   NEXT_PUBLIC_API_URL = https://your-backend-app.railway.app
    ```
-   Replace `your-railway-app` with your actual Railway app name.
+   Replace `your-backend-app` with your actual Railway backend service URL.
 
 4. **Deploy**:
-   - Click "Deploy"
+   - Railway will automatically build and deploy
    - Wait for build and deployment to complete
+
+### 2.2 Get Frontend URL
+- After successful deployment, copy your Railway frontend URL
+- Format: `https://your-frontend-app.railway.app`
+- Test the frontend: Visit the URL to see the application
 
 ## 🔧 Step 3: Test Integration
 
 ### 3.1 Test Backend
-- Visit: `https://your-railway-app.railway.app/`
+- Visit: `https://your-backend-app.railway.app/`
 - Should return: `{"message":"EO Compliance Analysis API"}`
 
 ### 3.2 Test Frontend
-- Visit your Vercel app URL
+- Visit your frontend Railway app URL
 - Upload a test document
 - Verify analysis results are returned
 
@@ -92,46 +92,47 @@ This guide will help you deploy the EO Compliance Analysis Tool to Railway (back
 - **Build Fails**: Check for TypeScript or dependency errors
 
 ### Integration Issues
-- **Connection Refused**: Ensure Railway backend URL is correct in Vercel env vars
+- **Connection Refused**: Ensure Railway backend URL is correct in frontend env vars
 - **Timeout**: Check if Railway app is sleeping (free tier limitation)
 
 ## 📝 Environment Variables Reference
 
-### Railway (Backend)
+### Railway Backend Service
 ```
 PORT=8000  # Automatically set by Railway
 ```
 
-### Vercel (Frontend)
+### Railway Frontend Service
 ```
-API_URL=https://your-railway-app.railway.app
-NEXT_PUBLIC_API_URL=https://your-railway-app.railway.app
+API_URL=https://your-backend-app.railway.app
+NEXT_PUBLIC_API_URL=https://your-backend-app.railway.app
+PORT=3000  # Automatically set by Railway
 ```
 
 ## 🚀 Post-Deployment
 
 1. **Update Repository**: Commit any changes made during deployment
-2. **Monitor**: Check Railway and Vercel dashboards for performance
+2. **Monitor**: Check Railway dashboard for both services performance
 3. **Scale**: Upgrade plans if needed for production usage
-4. **Custom Domain**: Configure custom domains in both platforms if desired
+4. **Custom Domain**: Configure custom domains in Railway if desired
 
 ## 💡 Tips
 
 - **Free Tier Limits**: Railway free tier has usage limits
 - **Cold Starts**: First request after inactivity may be slower
-- **Logs**: Use Railway and Vercel dashboards to monitor logs
+- **Logs**: Use Railway dashboard to monitor logs for both services
 - **Updates**: Push to GitHub will trigger automatic redeployments
 
 ## 🔄 Updating Deployments
 
 ### Backend Updates
 - Push changes to GitHub
-- Railway will automatically redeploy
+- Railway will automatically redeploy backend service
 
 ### Frontend Updates
 - Push changes to GitHub
-- Vercel will automatically redeploy
+- Railway will automatically redeploy frontend service
 
 ### Environment Variable Updates
-- Update in respective platform dashboards
+- Update in Railway dashboard for respective services
 - Redeploy if necessary
