@@ -1,103 +1,229 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState } from 'react';
+import FileUpload from '@/components/FileUpload';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertCircle, Download, Search } from 'lucide-react';
+
+interface AnalysisResult {
+  file_path: string;
+  source_type: string;
+  source_name: string;
+  location: string;
+  keyword: string;
+  exact_sentence: string;
+  partner: string;
+}
+
+interface ApiResponse {
+  total_matches: number;
+  files_processed: number;
+  keywords_found: number;
+  results: AnalysisResult[];
+}
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [files, setFiles] = useState<File[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [results, setResults] = useState<ApiResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const analyzeFiles = async () => {
+    if (files.length === 0) return;
+
+    setIsAnalyzing(true);
+    setError(null);
+
+    try {
+      const filesData = await Promise.all(
+        files.map(async (file) => {
+          const buffer = await file.arrayBuffer();
+          const base64Content = Buffer.from(buffer).toString('base64');
+          return {
+            filename: file.name,
+            content: base64Content
+          };
+        })
+      );
+
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ files: filesData })
+      });
+
+      if (!response.ok) {
+        throw new Error('Analysis failed');
+      }
+
+      const data: ApiResponse = await response.json();
+      setResults(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Analysis failed');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const downloadCSV = () => {
+    if (!results) return;
+
+    const csv = [
+      ['File Path', 'Source Type', 'Source Name', 'Location', 'Keyword', 'Exact Sentence', 'Partner'],
+      ...results.results.map(result => [
+        result.file_path,
+        result.source_type,
+        result.source_name,
+        result.location,
+        result.keyword,
+        result.exact_sentence,
+        result.partner
+      ])
+    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'compliance-analysis-results.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              EO Compliance Analysis Tool
+            </h1>
+            <p className="text-gray-600">
+              Upload documents to analyze for compliance-related keywords
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <FileUpload files={files} onFilesChange={setFiles} />
+
+            {files.length > 0 && (
+              <div className="text-center">
+                <Button 
+                  onClick={analyzeFiles}
+                  disabled={isAnalyzing}
+                  className="px-8 py-2"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4 mr-2" />
+                      Analyze Documents
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {error && (
+              <Card className="border-red-200 bg-red-50">
+                <CardContent className="pt-6">
+                  <div className="flex items-center space-x-2 text-red-700">
+                    <AlertCircle className="w-5 h-5" />
+                    <span>{error}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {results && (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      Analysis Results
+                      <Button onClick={downloadCSV} variant="outline" size="sm">
+                        <Download className="w-4 h-4 mr-2" />
+                        Download CSV
+                      </Button>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">
+                          {results.total_matches}
+                        </div>
+                        <div className="text-sm text-gray-600">Total Matches</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">
+                          {results.files_processed}
+                        </div>
+                        <div className="text-sm text-gray-600">Files Processed</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {results.keywords_found}
+                        </div>
+                        <div className="text-sm text-gray-600">Keywords Found</div>
+                      </div>
+                    </div>
+
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>File</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead>Keyword</TableHead>
+                          <TableHead>Sentence</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {results.results.slice(0, 50).map((result, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">
+                              {result.file_path}
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">
+                                <div>{result.source_name}</div>
+                                <div className="text-gray-500">{result.location}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">{result.keyword}</Badge>
+                            </TableCell>
+                            <TableCell className="max-w-md">
+                              <div className="truncate" title={result.exact_sentence}>
+                                {result.exact_sentence}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+
+                    {results.results.length > 50 && (
+                      <div className="text-center mt-4 text-gray-500">
+                        Showing first 50 results. Download CSV for complete results.
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
