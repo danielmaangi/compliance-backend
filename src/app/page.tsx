@@ -101,7 +101,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              EO Compliance Analysis Tool
+              EO Compliance Analysis
             </h1>
             <p className="text-gray-600">
               Upload documents to analyze for compliance-related keywords

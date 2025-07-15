@@ -1,6 +1,6 @@
 # Railway Deployment Guide
 
-This guide will help you deploy both the backend and frontend of the EO Compliance Analysis Tool to Railway.
+This guide will help you deploy both the backend and frontend of the EO Compliance Analysis to Railway.
 
 ## 🚂 Step 1: Deploy Backend to Railway
 

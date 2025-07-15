@@ -1,4 +1,4 @@
-# EO Compliance Analysis Tool
+# EO Compliance Analysis
 
 A comprehensive document analysis tool built with Next.js frontend and Python FastAPI backend for analyzing documents for compliance-related keywords.
 

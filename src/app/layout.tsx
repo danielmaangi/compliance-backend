@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EO Compliance Analysis Tool",
+  title: "EO Compliance Analysis",
   description: "Analyze documents for compliance-related keywords",
 };
 

@@ -1,6 +1,6 @@
 # GitHub Actions CI/CD Documentation
 
-This document explains the GitHub Actions workflows configured for the EO Compliance Analysis Tool.
+This document explains the GitHub Actions workflows configured for the EO Compliance Analysis.
 
 ## 🚀 Workflows Overview
 
