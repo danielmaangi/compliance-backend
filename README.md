@@ -199,6 +199,18 @@ This project is private and proprietary.
 
 For issues and support, please create an issue in the GitHub repository.
 
+## 🤖 CI/CD & Automation
+
+This project includes comprehensive GitHub Actions workflows for:
+
+- **Continuous Integration**: Automated testing, linting, and security scanning
+- **Continuous Deployment**: Automatic deployment to Railway (backend) and Vercel (frontend)
+- **Pull Request Validation**: Code quality checks and automated PR comments
+- **Dependency Management**: Weekly automated dependency updates
+- **Security Monitoring**: Vulnerability scanning and automated issue creation
+
+See [GITHUB_ACTIONS.md](GITHUB_ACTIONS.md) for detailed documentation.
+
 ## 🔄 Recent Updates
 
 - ✅ Fixed Next.js configuration warnings
@@ -208,3 +220,6 @@ For issues and support, please create an issue in the GitHub repository.
 - ✅ Enhanced UI with shadcn/ui components
 - ✅ Added drag-and-drop file upload
 - ✅ Implemented CSV export functionality
+- ✅ Added GitHub Actions CI/CD pipelines
+- ✅ Configured automated deployment workflows
+- ✅ Implemented security scanning and dependency updates

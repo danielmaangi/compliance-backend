@@ -1,0 +1,255 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # Code Quality Checks
+  code-quality:
+    name: Code Quality & Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install frontend dependencies
+      run: npm ci
+      
+    - name: Run ESLint
+      run: npm run lint
+      
+    - name: Run Prettier check
+      run: npx prettier --check .
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install backend dependencies
+      run: |
+        cd api
+        pip install -r requirements.txt
+        pip install flake8 black isort
+        
+    - name: Run Python linting
+      run: |
+        cd api
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        
+    - name: Check Python formatting
+      run: |
+        cd api
+        black --check .
+        isort --check-only .
+
+  # Build and Test
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Type checking
+      run: npx tsc --noEmit
+      
+    - name: Build frontend
+      run: npm run build
+      env:
+        API_URL: http://localhost:8000
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install backend dependencies
+      run: |
+        cd api
+        pip install -r requirements.txt
+        
+    - name: Test backend startup
+      run: |
+        cd api
+        timeout 10s uvicorn main:app --host 0.0.0.0 --port 8000 &
+        sleep 5
+        curl -f http://localhost:8000/ || exit 1
+
+  # Security Check
+  security-check:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run npm audit
+      run: npm audit --audit-level=high
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Install safety
+      run: pip install safety
+      
+    - name: Check Python dependencies
+      run: |
+        cd api
+        pip install -r requirements.txt
+        safety check
+
+  # Dependency Check
+  dependency-check:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Check for outdated packages
+      run: npm outdated || true
+      
+    - name: Check package vulnerabilities
+      run: npm audit --audit-level=moderate || true
+      
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+        
+    - name: Check Python dependencies
+      run: |
+        cd api
+        pip install pip-audit
+        pip-audit -r requirements.txt || true
+
+  # PR Size Check
+  pr-size-check:
+    name: PR Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Check PR size
+      run: |
+        files_changed=$(git diff --name-only origin/main...HEAD | wc -l)
+        lines_changed=$(git diff --stat origin/main...HEAD | tail -1 | grep -o '[0-9]\+ insertions\|[0-9]\+ deletions' | grep -o '[0-9]\+' | paste -sd+ | bc)
+        
+        echo "Files changed: $files_changed"
+        echo "Lines changed: $lines_changed"
+        
+        if [ "$files_changed" -gt 50 ]; then
+          echo "⚠️ Large PR: $files_changed files changed (consider splitting)"
+        fi
+        
+        if [ "$lines_changed" -gt 1000 ]; then
+          echo "⚠️ Large PR: $lines_changed lines changed (consider splitting)"
+        fi
+
+  # Comment on PR
+  pr-comment:
+    name: PR Status Comment
+    runs-on: ubuntu-latest
+    needs: [code-quality, build-test, security-check, dependency-check, pr-size-check]
+    if: always()
+    
+    steps:
+    - name: Comment PR
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { data: comments } = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const botComment = comments.find(comment => 
+            comment.user.type === 'Bot' && comment.body.includes('## PR Validation Results')
+          );
+          
+          const results = {
+            'code-quality': '${{ needs.code-quality.result }}',
+            'build-test': '${{ needs.build-test.result }}',
+            'security-check': '${{ needs.security-check.result }}',
+            'dependency-check': '${{ needs.dependency-check.result }}',
+            'pr-size-check': '${{ needs.pr-size-check.result }}'
+          };
+          
+          const getEmoji = (result) => {
+            switch(result) {
+              case 'success': return '✅';
+              case 'failure': return '❌';
+              case 'cancelled': return '⏹️';
+              default: return '⏳';
+            }
+          };
+          
+          const body = `## PR Validation Results
+          
+          | Check | Status |
+          |-------|--------|
+          | Code Quality & Linting | ${getEmoji(results['code-quality'])} ${results['code-quality']} |
+          | Build & Test | ${getEmoji(results['build-test'])} ${results['build-test']} |
+          | Security Check | ${getEmoji(results['security-check'])} ${results['security-check']} |
+          | Dependency Check | ${getEmoji(results['dependency-check'])} ${results['dependency-check']} |
+          | PR Size Check | ${getEmoji(results['pr-size-check'])} ${results['pr-size-check']} |
+          
+          ${Object.values(results).every(r => r === 'success') ? 
+            '🎉 All checks passed! This PR is ready for review.' : 
+            '⚠️ Some checks failed. Please review and fix the issues above.'}
+          
+          ---
+          *This comment is automatically updated on each push.*`;
+          
+          if (botComment) {
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: body
+            });
+          } else {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
+          }
