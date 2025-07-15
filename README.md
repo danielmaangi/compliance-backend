@@ -153,18 +153,40 @@ Analyzes uploaded files for compliance keywords
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
+### Railway Deployment (Recommended)
+
+This application is designed to be deployed on Railway as two separate services:
+
+#### Quick Railway Setup:
+1. **Deploy Backend**: Create a Railway service, set root directory to `api`
+2. **Deploy Frontend**: Create another Railway service, set root directory to `.` (root)
+3. **Configure Environment**: Set `API_URL` in frontend to your backend Railway URL
+
+For detailed Railway deployment instructions, see [RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md)
+
+#### Alternative Deployments:
+
+**Frontend (Vercel)**
 1. Connect your GitHub repository to Vercel
 2. Configure build settings:
    - Build Command: `npm run build`
    - Output Directory: `.next`
-3. Deploy
+3. Set environment variable: `API_URL=https://your-backend-url`
 
-### Backend (Railway/Heroku)
+**Backend (Railway/Heroku)**
 1. Create a new app on your preferred platform
 2. Connect the repository
 3. Set the start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 4. Deploy
+
+### Fixing "Connection Refused" Error
+
+If you see `ECONNREFUSED ::1:8000` in Railway:
+1. Ensure you've deployed the Python API as a separate Railway service
+2. Set the `API_URL` environment variable in your frontend service to your backend URL
+3. Check that both services are running and healthy
+
+See [RAILWAY_DEPLOYMENT.md](./RAILWAY_DEPLOYMENT.md) for complete troubleshooting guide.
 
 ## 🤝 Contributing
 
