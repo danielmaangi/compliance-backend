@@ -1,4 +1,4 @@
-# EO Compliance Analysis
+# EO Compliance Analysis Tool
 
 A comprehensive document analysis tool built with Next.js frontend and Python FastAPI backend for analyzing documents for compliance-related keywords.
 
@@ -153,39 +153,18 @@ Analyzes uploaded files for compliance keywords
 
 ## 🚀 Deployment
 
-Both frontend and backend are deployed on Railway for simplified management.
+### Frontend (Vercel)
+1. Connect your GitHub repository to Vercel
+2. Configure build settings:
+   - Build Command: `npm run build`
+   - Output Directory: `.next`
+3. Deploy
 
-### Backend (Railway) - Deploy First
-1. **Create Railway Account**: Sign up at [railway.app](https://railway.app)
-2. **Deploy Backend**:
-   - Click "New Project" → "Deploy from GitHub repo"
-   - Select your repository
-   - Choose the `api` folder as the root directory
-   - Railway will automatically detect Python and use the Procfile
-3. **Configure Environment**:
-   - Railway will automatically set the `PORT` variable
-   - No additional environment variables needed for basic setup
-4. **Get Backend URL**: After deployment, copy your Railway app URL (e.g., `https://your-backend-app.railway.app`)
-
-### Frontend (Railway) - Deploy Second
-1. **Add Frontend Service**:
-   - In your Railway project, click "New Service"
-   - Select "Deploy from GitHub repo"
-   - Choose the same repository
-   - Leave root directory empty (uses project root)
-2. **Configure Environment Variables**:
-   - Add `API_URL` = `https://your-backend-app.railway.app`
-   - Add `NEXT_PUBLIC_API_URL` = `https://your-backend-app.railway.app`
-3. **Deploy**: Railway will automatically build and deploy
-
-### Environment Variables Setup
-Copy `.env.example` to `.env.local` and update with your Railway backend URL:
-```bash
-cp .env.example .env.local
-# Edit .env.local with your Railway backend URL
-```
-
-See [RAILWAY_DEPLOYMENT.md](RAILWAY_DEPLOYMENT.md) for detailed deployment instructions.
+### Backend (Railway/Heroku)
+1. Create a new app on your preferred platform
+2. Connect the repository
+3. Set the start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+4. Deploy
 
 ## 🤝 Contributing
 
@@ -203,18 +182,6 @@ This project is private and proprietary.
 
 For issues and support, please create an issue in the GitHub repository.
 
-## 🤖 CI/CD & Automation
-
-This project includes comprehensive GitHub Actions workflows for:
-
-- **Continuous Integration**: Automated testing, linting, and security scanning
-- **Continuous Deployment**: Automatic deployment to Railway (both backend and frontend)
-- **Pull Request Validation**: Code quality checks and automated PR comments
-- **Dependency Management**: Weekly automated dependency updates
-- **Security Monitoring**: Vulnerability scanning and automated issue creation
-
-See [GITHUB_ACTIONS.md](GITHUB_ACTIONS.md) for detailed documentation.
-
 ## 🔄 Recent Updates
 
 - ✅ Fixed Next.js configuration warnings
@@ -224,6 +191,3 @@ See [GITHUB_ACTIONS.md](GITHUB_ACTIONS.md) for detailed documentation.
 - ✅ Enhanced UI with shadcn/ui components
 - ✅ Added drag-and-drop file upload
 - ✅ Implemented CSV export functionality
-- ✅ Added GitHub Actions CI/CD pipelines
-- ✅ Configured automated deployment workflows
-- ✅ Implemented security scanning and dependency updates
