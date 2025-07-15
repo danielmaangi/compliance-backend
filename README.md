@@ -153,18 +153,35 @@ Analyzes uploaded files for compliance keywords
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
-1. Connect your GitHub repository to Vercel
-2. Configure build settings:
+### Backend (Railway) - Deploy First
+1. **Create Railway Account**: Sign up at [railway.app](https://railway.app)
+2. **Deploy Backend**:
+   - Click "New Project" → "Deploy from GitHub repo"
+   - Select your repository
+   - Choose the `api` folder as the root directory
+   - Railway will automatically detect Python and use the Procfile
+3. **Configure Environment**:
+   - Railway will automatically set the `PORT` variable
+   - No additional environment variables needed for basic setup
+4. **Get Backend URL**: After deployment, copy your Railway app URL (e.g., `https://your-app.railway.app`)
+
+### Frontend (Vercel) - Deploy Second
+1. **Connect Repository**: Connect your GitHub repository to Vercel
+2. **Configure Build Settings**:
    - Build Command: `npm run build`
    - Output Directory: `.next`
-3. Deploy
+   - Root Directory: `/` (leave empty for root)
+3. **Set Environment Variables**:
+   - Add `API_URL` = `https://your-railway-backend-url.railway.app`
+   - Add `NEXT_PUBLIC_API_URL` = `https://your-railway-backend-url.railway.app`
+4. **Deploy**: Click deploy
 
-### Backend (Railway/Heroku)
-1. Create a new app on your preferred platform
-2. Connect the repository
-3. Set the start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-4. Deploy
+### Environment Variables Setup
+Copy `.env.example` to `.env.local` and update with your Railway backend URL:
+```bash
+cp .env.example .env.local
+# Edit .env.local with your Railway backend URL
+```
 
 ## 🤝 Contributing
 

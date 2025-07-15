@@ -4,8 +4,11 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
+    // Use environment variable for API URL, fallback to localhost for development
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:8000';
+    
     // Forward the request to the Python API
-    const response = await fetch('http://localhost:8000/analyze', {
+    const response = await fetch(`${apiUrl}/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
