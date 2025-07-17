@@ -6,7 +6,7 @@ import json
 import io
 import base64
 import pandas as pd
-from pypdf import PdfReader
+from PyPDF2 import PdfReader
 from openpyxl import load_workbook
 from docx import Document
 import re
