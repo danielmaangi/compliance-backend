@@ -10,12 +10,12 @@ import re
 
 # Keywords list
 KEYWORDS = [
-    'gender', 'transgender', 'transmen', 'transwomen', 'lgbtq', 'lgbt', 'dei',
-    'diversity', 'equity', 'inclusion', 'gbv', 'trans-gender', 'trans-women',
+    'gender', 'transgender', 'transmen', 'transwomen', 'lgbtq', 'lgbt', ' dei ',
+    'diversity', 'equity', 'inclusion', ' gbv ', 'trans-gender', 'trans-women',
     'trans-men', 'disparity', 'pregnant people', 'identity', 'inclusivity',
     'binary', 'non-binary', 'prejudice', 'pronouns', 'race', 'stereotype',
-    'tgw', 'tg', 'transgender women', 'trans', 'protecting women', 'key pops',
-    'key populations', 'mat', 'hormone', 'dreams', 'abortion', 'fsw',
+    ' tgw ', ' tg ', 'transgender women', ' trans ', 'protecting women', 'key pops',
+    'key populations', ' mat ', 'hormone', ' dreams ', 'abortion', ' fsw',
     'female sex worker', 'food'
 ]
 
@@ -26,8 +26,6 @@ def extract_sentences_from_text(text: str, keywords: List[str]) -> List[Dict[str
     
     for sentence in sentences:
         sentence = sentence.strip()
-        if len(sentence) < 10:  # Skip very short sentences
-            continue
             
         for keyword in keywords:
             if keyword.lower() in sentence.lower():
