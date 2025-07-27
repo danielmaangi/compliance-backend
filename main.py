@@ -10,7 +10,6 @@ from PyPDF2 import PdfReader
 from openpyxl import load_workbook
 from docx import Document
 import re
-import inflect
 
 app = FastAPI(title="EO Compliance Analysis API")
 
@@ -23,8 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Base keywords list
-BASE_KEYWORDS = [
+# Keywords list
+KEYWORDS = [
     'gender', 'transgender', 'transmen', 'transwomen', 'lgbtq', 'lgbt', 'dei',
     'diversity', 'equity', 'inclusion', 'gbv', 'trans-gender', 'trans-women',
     'trans-men', 'disparity', 'pregnant people', 'identity', 'inclusivity',
@@ -34,27 +33,6 @@ BASE_KEYWORDS = [
     'female sex worker', 'food'
 ]
 
-def generate_keywords_with_plurals(base_keywords: List[str]) -> List[str]:
-    """Generate keywords list including plural forms."""
-    p = inflect.engine()
-    keywords = set(base_keywords)  # Use set to avoid duplicates
-    
-    for keyword in base_keywords:
-        # Skip multi-word phrases and already plural words
-        if ' ' not in keyword and not keyword.endswith('s'):
-            try:
-                plural = p.plural(keyword)
-                if plural and plural != keyword:
-                    keywords.add(plural)
-            except:
-                # If pluralization fails, just continue
-                pass
-    
-    return list(keywords)
-
-# Generate keywords with plurals
-KEYWORDS = generate_keywords_with_plurals(BASE_KEYWORDS)
-
 class FileData(BaseModel):
     filename: str
     content: str
@@ -63,7 +41,7 @@ class AnalyzeRequest(BaseModel):
     files: List[FileData]
 
 def extract_sentences_from_text(text: str, keywords: List[str]) -> List[Dict[str, Any]]:
-    """Extract sentences containing keywords from text using word boundary matching."""
+    """Extract sentences containing keywords from text."""
     sentences = re.split(r'[.!?]+', text)
     matches = []
     
@@ -73,10 +51,7 @@ def extract_sentences_from_text(text: str, keywords: List[str]) -> List[Dict[str
             continue
             
         for keyword in keywords:
-            # Use word boundary regex for exact word matching
-            # \b ensures we match whole words only
-            pattern = r'\b' + re.escape(keyword.lower()) + r'\b'
-            if re.search(pattern, sentence.lower()):
+            if keyword.lower() in sentence.lower():
                 matches.append({
                     'keyword': keyword,
                     'sentence': sentence,
